@@ -1,352 +1,187 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Officina Rossi</title>
-<style>
-* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-:root { --bg:#0d1117; --bg2:#161b22; --bg3:#21262d; --blue:#4488ff; --green:#00cc66; --red:#ff4444; --orange:#ff9900; --text:#c9d1d9; --text2:#8b949e; --white:#ffffff; --border:#30363d; }
-body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh; padding-bottom:80px; }
-.header { background:var(--bg2); border-bottom:1px solid var(--border); padding:14px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
-.header-title { font-size:16px; font-weight:700; color:var(--white); }
-.header-sub { font-size:11px; color:var(--blue); margin-top:1px; }
-.sync-btn { background:none; border:1px solid var(--border); border-radius:8px; color:var(--text2); padding:7px 12px; font-size:13px; cursor:pointer; }
-.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg2); border-top:1px solid var(--border); display:flex; z-index:100; }
-.nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:10px 4px 14px; cursor:pointer; border:none; background:none; color:var(--text2); font-size:10px; gap:4px; }
-.nav-btn.active { color:var(--blue); }
-.nav-icon { font-size:22px; }
-.page { display:none; padding:16px; }
-.page.active { display:block; }
-.kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
-.kpi-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
-.kpi-value { font-size:32px; font-weight:700; color:var(--white); }
-.kpi-label { font-size:11px; color:var(--text2); margin-top:4px; }
-.kpi-card.green .kpi-value { color:var(--green); } .kpi-card.green { border-color:#00cc6633; }
-.kpi-card.red .kpi-value { color:var(--red); } .kpi-card.red { border-color:#ff444433; }
-.kpi-card.orange .kpi-value { color:var(--orange); } .kpi-card.orange { border-color:#ff990033; }
-.kpi-card.blue .kpi-value { color:var(--blue); } .kpi-card.blue { border-color:#4488ff33; }
-.card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
-.card-title { font-size:11px; letter-spacing:2px; color:var(--blue); margin-bottom:12px; font-weight:600; text-transform:uppercase; }
-.ordine-item { background:var(--bg3); border-radius:10px; padding:14px; margin-bottom:8px; }
-.ordine-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
-.ordine-cliente { font-size:15px; font-weight:600; color:var(--white); }
-.ordine-rif { font-size:12px; color:var(--text2); margin-top:2px; }
-.badge { font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; white-space:nowrap; }
-.badge.green { background:#00cc6622; color:var(--green); }
-.badge.red { background:#ff444422; color:var(--red); }
-.badge.orange { background:#ff990022; color:var(--orange); }
-.ordine-info { display:flex; gap:14px; margin-top:8px; font-size:11px; color:var(--text2); flex-wrap:wrap; }
-.progress-bar { background:var(--bg); border-radius:4px; height:6px; margin-top:10px; overflow:hidden; }
-.progress-fill { height:100%; border-radius:4px; background:var(--blue); }
-.progress-fill.green { background:var(--green); } .progress-fill.red { background:var(--red); }
-.prod-item { background:var(--bg3); border-radius:10px; padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
-.prod-op { font-size:14px; font-weight:600; color:var(--white); }
-.prod-info { font-size:11px; color:var(--text2); margin-top:3px; }
-.prod-pezzi { font-size:24px; font-weight:700; color:var(--blue); text-align:right; }
-.prod-pezzi-label { font-size:10px; color:var(--text2); text-align:right; }
-.section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-.section-title { font-size:13px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
-.add-btn { background:var(--blue); border:none; color:var(--white); border-radius:8px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; }
-.modal-overlay { display:none; position:fixed; inset:0; background:#000000dd; z-index:200; align-items:flex-end; justify-content:center; }
-.modal-overlay.open { display:flex; }
-.modal { background:var(--bg2); border-radius:20px 20px 0 0; padding:20px 16px 40px; width:100%; max-height:92vh; overflow-y:auto; }
-.modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 18px; }
-.modal-title { font-size:18px; font-weight:700; color:var(--white); margin-bottom:20px; }
-.form-group { margin-bottom:14px; }
-.form-label { font-size:12px; color:var(--text2); margin-bottom:7px; display:block; font-weight:500; }
-.form-input,.form-select { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:10px; color:var(--white); font-size:16px; padding:12px 14px; outline:none; font-family:inherit; }
-.form-input:focus,.form-select:focus { border-color:var(--blue); }
-.form-select option { background:var(--bg2); }
-.btn { width:100%; padding:15px; border-radius:12px; border:none; font-size:16px; font-weight:600; cursor:pointer; font-family:inherit; margin-top:6px; }
-.btn-primary { background:var(--blue); color:var(--white); }
-.btn-success { background:var(--green); color:#000; }
-.btn-outline { background:none; border:1px solid var(--border); color:var(--text); }
-.alert { border-radius:10px; padding:12px 14px; margin-bottom:12px; font-size:13px; }
-.alert.success { background:#00cc6622; color:var(--green); border:1px solid #00cc6633; }
-.alert.error { background:#ff444422; color:var(--red); border:1px solid #ff444433; }
-.empty { text-align:center; padding:48px 16px; color:var(--text2); }
-.empty-icon { font-size:48px; margin-bottom:12px; }
-.date-label { text-align:center; font-size:12px; color:var(--text2); margin-bottom:16px; }
-.spinner { display:inline-block; width:24px; height:24px; border:2px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-.loading-state { text-align:center; padding:40px; }
-</style>
-</head>
-<body>
+function doGet(e) {
+  const action = e.parameter.action;
+  const callback = e.parameter.callback;
+  let result;
+  try {
+    if      (action === 'getOrdini')      result = getOrdini();
+    else if (action === 'getProduzione')  result = getProduzione();
+    else if (action === 'getDashboard')   result = getDashboard();
+    else if (action === 'addOrdine')      result = addOrdine(e.parameter);
+    else if (action === 'addProduzione')  result = addProduzione(e.parameter);
+    else if (action === 'getOperatori')   result = getOperatori();
+    else result = { error: 'azione non trovata' };
+  } catch(err) {
+    result = { error: err.toString() };
+  }
+  const json = JSON.stringify(result);
+  if (callback) {
+    return ContentService.createTextOutput(callback + '(' + json + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
 
-<div class="header">
-  <div><div class="header-title">Officina Rossi</div><div class="header-sub" id="last-sync">Caricamento...</div></div>
-  <button class="sync-btn" onclick="syncAll()">↻ Aggiorna</button>
-</div>
+function getSheet(name) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    if (name === 'Ordini')
+      sheet.appendRow(['ID','Cliente','Rif','DataOrdine','DataConsegna','QtyTotale','Stato','Note','Fasi']);
+    if (name === 'FasiOrdine')
+      sheet.appendRow(['OrdineID','Fase','QtyRichiesta','QtyProdotta','Stato']);
+    if (name === 'Produzione')
+      sheet.appendRow(['ID','Data','Operatore','OrdineID','OrdineRif','Fase','Pezzi','OreImpegate','Note']);
+  }
+  return sheet;
+}
 
-<div id="page-dashboard" class="page active">
-  <div class="date-label" id="today-label"></div>
-  <div class="kpi-grid">
-    <div class="kpi-card blue"><div class="kpi-value" id="kpi-ordini">—</div><div class="kpi-label">Ordini totali</div></div>
-    <div class="kpi-card green"><div class="kpi-value" id="kpi-completi">—</div><div class="kpi-label">Completati</div></div>
-    <div class="kpi-card red"><div class="kpi-value" id="kpi-ritardo">—</div><div class="kpi-label">In ritardo</div></div>
-    <div class="kpi-card orange"><div class="kpi-value" id="kpi-oggi">—</div><div class="kpi-label">Pezzi oggi</div></div>
-  </div>
-  <div class="card"><div class="card-title">Produzione recente</div><div id="dash-prod"><div class="loading-state"><div class="spinner"></div></div></div></div>
-  <div class="card"><div class="card-title">Ordini in corso</div><div id="dash-ordini"><div class="loading-state"><div class="spinner"></div></div></div></div>
-</div>
+function getOrdini() {
+  const ordSheet  = getSheet('Ordini');
+  const fasiSheet = getSheet('FasiOrdine');
+  const ordData   = ordSheet.getDataRange().getValues();
+  const fasiData  = fasiSheet.getDataRange().getValues();
+  if (ordData.length <= 1) return [];
+  const oh = ordData[0];
+  const fh = fasiData.length > 1 ? fasiData[0] : [];
+  const fasiRows = fasiData.length > 1 ? fasiData.slice(1) : [];
 
-<div id="page-ordini" class="page">
-  <div class="section-header"><div class="section-title">Tutti gli ordini</div><button class="add-btn" onclick="openModal('modal-ordine')">+ Nuovo</button></div>
-  <div id="alert-ordini"></div>
-  <div id="ordini-list"><div class="loading-state"><div class="spinner"></div></div></div>
-</div>
-
-<div id="page-produzione" class="page">
-  <div class="section-header"><div class="section-title">Produzione giornaliera</div><button class="add-btn" onclick="openModal('modal-produzione')">+ Inserisci</button></div>
-  <div id="alert-produzione"></div>
-  <div id="produzione-list"><div class="loading-state"><div class="spinner"></div></div></div>
-</div>
-
-<div class="bottom-nav">
-  <button class="nav-btn active" id="nav-dashboard" onclick="goTo('dashboard')"><span class="nav-icon">📊</span>Dashboard</button>
-  <button class="nav-btn" id="nav-ordini" onclick="goTo('ordini')"><span class="nav-icon">📋</span>Ordini</button>
-  <button class="nav-btn" id="nav-produzione" onclick="goTo('produzione')"><span class="nav-icon">⚙️</span>Produzione</button>
-</div>
-
-<div class="modal-overlay" id="modal-ordine">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Nuovo Ordine</div>
-    <div id="alert-modal-ordine"></div>
-    <div class="form-group"><label class="form-label">Cliente *</label><input class="form-input" id="ord-cliente" placeholder="Es. Cliente A" type="text"></div>
-    <div class="form-group"><label class="form-label">Riferimento pezzo *</label><input class="form-input" id="ord-rif" placeholder="Es. REF-001" type="text"></div>
-    <div class="form-group"><label class="form-label">Quantità ordinata *</label><input class="form-input" id="ord-qty" placeholder="Es. 100" type="number"></div>
-    <div class="form-group"><label class="form-label">Data ordine</label><input class="form-input" id="ord-data" type="date"></div>
-    <div class="form-group"><label class="form-label">Data consegna promessa</label><input class="form-input" id="ord-consegna" type="date"></div>
-    <div class="form-group"><label class="form-label">Note</label><input class="form-input" id="ord-note" placeholder="Opzionale" type="text"></div>
-    <button class="btn btn-primary" onclick="submitOrdine()">💾 Salva ordine</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-ordine')">Annulla</button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modal-produzione">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Inserisci Produzione</div>
-    <div id="alert-modal-produzione"></div>
-    <div class="form-group">
-      <label class="form-label">Operatore *</label>
-      <select class="form-select" id="prod-operatore">
-        <option value="">Seleziona operatore...</option>
-        <option>Halim</option><option>Roberto</option><option>Roberta</option>
-        <option>Jason</option><option>Giuliano</option>
-        <option>Operatore 7</option><option>Operatore 8</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Macchina *</label>
-      <select class="form-select" id="prod-macchina">
-        <option value="">Seleziona macchina...</option>
-        <option>Macchina 1 — Tornio CNC</option>
-        <option>Macchina 2 — Fresatrice</option>
-        <option>Macchina 3 — Tornio manuale</option>
-        <option>Macchina 4 — Rettificatrice</option>
-        <option>Macchina 5 — Trapano CNC</option>
-        <option>Macchina 6 — Centro lavorazione</option>
-        <option>Macchina 7</option><option>Macchina 8</option>
-      </select>
-    </div>
-    <div class="form-group"><label class="form-label">Riferimento pezzo *</label><input class="form-input" id="prod-rif" placeholder="Es. REF-001" type="text"></div>
-    <div class="form-group"><label class="form-label">Pezzi prodotti *</label><input class="form-input" id="prod-pezzi" placeholder="Es. 12" type="number"></div>
-    <div class="form-group"><label class="form-label">Data</label><input class="form-input" id="prod-data" type="date"></div>
-    <div class="form-group"><label class="form-label">Note</label><input class="form-input" id="prod-note" placeholder="Opzionale" type="text"></div>
-    <button class="btn btn-success" onclick="submitProduzione()">💾 Salva produzione</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-produzione')">Annulla</button>
-  </div>
-</div>
-
-<script>
-const API = 'https://script.google.com/macros/s/AKfycbyAFSm3dfl7Y5vodzRljJokL71SYchhlbsIlOtSabx5-feyIvcLCLnZujiadNYOoZUh0g/exec';
-let dataOrdini = [], dataProduzione = [];
-let cbCount = 0;
-
-const fmt = n => new Intl.NumberFormat('it-IT').format(n||0);
-const fmtDate = d => { try { return d ? new Date(d).toLocaleDateString('it-IT') : '—'; } catch(e) { return d||'—'; } };
-const today = () => new Date().toISOString().split('T')[0];
-
-// ── JSONP — bypassa CORS completamente ──
-function jsonp(params) {
-  return new Promise((resolve, reject) => {
-    const cbName = '_cb' + (++cbCount) + '_' + Date.now();
-    const timeout = setTimeout(() => {
-      delete window[cbName];
-      const tag = document.getElementById(cbName);
-      if (tag) tag.remove();
-      reject(new Error('Timeout — controlla la connessione'));
-    }, 10000);
-
-    window[cbName] = function(data) {
-      clearTimeout(timeout);
-      delete window[cbName];
-      const tag = document.getElementById(cbName);
-      if (tag) tag.remove();
-      resolve(data);
-    };
-
-    params.callback = cbName;
-    const url = API + '?' + new URLSearchParams(params).toString();
-    const script = document.createElement('script');
-    script.id = cbName;
-    script.src = url;
-    script.onerror = () => {
-      clearTimeout(timeout);
-      delete window[cbName];
-      script.remove();
-      reject(new Error('Errore di rete'));
-    };
-    document.head.appendChild(script);
+  return ordData.slice(1).map(r => {
+    const o = {};
+    oh.forEach((k,i) => o[k] = r[i]);
+    o.fasi = fasiRows
+      .filter(fr => fr[0] === o.ID)
+      .map(fr => { const f={}; fh.forEach((k,i) => f[k]=fr[i]); return f; });
+    return o;
   });
 }
 
-function showAlert(id, msg, type) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = `<div class="alert ${type}">${msg}</div>`;
-  setTimeout(() => { if(el) el.innerHTML = ''; }, 4000);
+function getProduzione() {
+  const data = getSheet('Produzione').getDataRange().getValues();
+  if (data.length <= 1) return [];
+  const h = data[0];
+  return data.slice(1).map(r => { const o={}; h.forEach((k,i)=>o[k]=r[i]); return o; });
 }
 
-function goTo(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  document.getElementById('nav-'+page).classList.add('active');
+function getOperatori() {
+  const prod = getSheet('Produzione').getDataRange().getValues();
+  if (prod.length <= 1) return [];
+  const h = prod[0];
+  const rows = prod.slice(1).map(r => { const o={}; h.forEach((k,i)=>o[k]=r[i]); return o; });
+
+  const stats = {};
+  rows.forEach(r => {
+    const op = r.Operatore;
+    if (!op) return;
+    if (!stats[op]) stats[op] = { nome:op, pezziTotali:0, oreTotali:0, sessioni:0 };
+    stats[op].pezziTotali += parseFloat(r.Pezzi) || 0;
+    stats[op].oreTotali   += parseFloat(r.OreImpegate) || 0;
+    stats[op].sessioni++;
+  });
+
+  return Object.values(stats).map(s => ({
+    ...s,
+    pezziPerOra: s.oreTotali > 0 ? (s.pezziTotali / s.oreTotali).toFixed(2) : '—'
+  }));
 }
 
-function openModal(id) {
-  if (id==='modal-ordine') document.getElementById('ord-data').value = today();
-  if (id==='modal-produzione') document.getElementById('prod-data').value = today();
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function getDashboard() {
+  const ordini = getSheet('Ordini').getDataRange().getValues();
+  const prod   = getSheet('Produzione').getDataRange().getValues();
+  const oggi   = new Date().toDateString();
+  const r = { totOrdini:0, ordiniCompleti:0, ordiniInRitardo:0, pezziOggi:0, oreOggi:0 };
 
-async function syncAll() {
-  document.getElementById('last-sync').textContent = 'Aggiornamento...';
-  try {
-    const [ordini, prod, dash] = await Promise.all([
-      jsonp({action:'getOrdini'}),
-      jsonp({action:'getProduzione'}),
-      jsonp({action:'getDashboard'})
-    ]);
-    dataOrdini = Array.isArray(ordini) ? ordini : [];
-    dataProduzione = Array.isArray(prod) ? prod : [];
-    renderDashboard(dash||{});
-    renderOrdini();
-    renderProduzione();
-    const now = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('last-sync').textContent = 'Aggiornato alle ' + now;
-  } catch(e) {
-    document.getElementById('last-sync').textContent = '⚠ ' + e.message;
+  if (ordini.length > 1) {
+    r.totOrdini = ordini.length - 1;
+    ordini.slice(1).forEach(row => {
+      const cons = row[4] ? new Date(row[4]) : null;
+      if (row[6] === 'Completato') r.ordiniCompleti++;
+      if (cons && cons < new Date() && row[6] !== 'Completato') r.ordiniInRitardo++;
+    });
   }
-}
-
-function ordineCard(o) {
-  const qty=parseFloat(o.Qty)||0, prod=parseFloat(o.QtyProdotta)||0;
-  const perc = qty>0 ? Math.min((prod/qty)*100,100) : 0;
-  const inRitardo = o.DataConsegna && new Date(o.DataConsegna)<new Date() && o.Stato!=='Completato';
-  const bc = o.Stato==='Completato'?'green':inRitardo?'red':'orange';
-  const bt = o.Stato==='Completato'?'✓ Completato':inRitardo?'⚠ Ritardo':'● In corso';
-  const fc = o.Stato==='Completato'?'green':inRitardo?'red':'';
-  return `<div class="ordine-item">
-    <div class="ordine-top">
-      <div><div class="ordine-cliente">${o.Cliente||'—'}</div><div class="ordine-rif">${o.Rif||'—'}</div></div>
-      <span class="badge ${bc}">${bt}</span>
-    </div>
-    <div class="ordine-info"><span>📦 ${fmt(prod)} / ${fmt(qty)} pz</span><span>📅 ${fmtDate(o.DataConsegna)}</span></div>
-    <div class="progress-bar"><div class="progress-fill ${fc}" style="width:${perc}%"></div></div>
-  </div>`;
-}
-
-function prodCard(p) {
-  return `<div class="prod-item">
-    <div><div class="prod-op">${p.Operatore||'—'}</div><div class="prod-info">${p.Macchina||'—'} · ${p.Rif||'—'} · ${fmtDate(p.Data)}</div></div>
-    <div><div class="prod-pezzi">${fmt(p.PezziProdotti)}</div><div class="prod-pezzi-label">pezzi</div></div>
-  </div>`;
-}
-
-function renderDashboard(dash) {
-  document.getElementById('kpi-ordini').textContent   = dash.totOrdini||0;
-  document.getElementById('kpi-completi').textContent = dash.ordiniCompleti||0;
-  document.getElementById('kpi-ritardo').textContent  = dash.ordiniInRitardo||0;
-  document.getElementById('kpi-oggi').textContent     = fmt(dash.pezziOggi||0);
-  const ultimi = [...dataProduzione].reverse().slice(0,3);
-  document.getElementById('dash-prod').innerHTML = ultimi.length
-    ? ultimi.map(prodCard).join('')
-    : '<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Nessuna produzione ancora</div></div>';
-  const inCorso = dataOrdini.filter(o=>o.Stato!=='Completato').slice(0,3);
-  document.getElementById('dash-ordini').innerHTML = inCorso.length
-    ? inCorso.map(ordineCard).join('')
-    : '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Tutti gli ordini completati!</div></div>';
-}
-
-function renderOrdini() {
-  document.getElementById('ordini-list').innerHTML = dataOrdini.length
-    ? dataOrdini.map(ordineCard).join('')
-    : '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Nessun ordine. Clicca + Nuovo.</div></div>';
-}
-
-function renderProduzione() {
-  if (!dataProduzione.length) {
-    document.getElementById('produzione-list').innerHTML = '<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-text">Nessun inserimento ancora.</div></div>';
-    return;
+  if (prod.length > 1) {
+    prod.slice(1).forEach(row => {
+      if (row[1] && new Date(row[1]).toDateString() === oggi) {
+        r.pezziOggi += parseFloat(row[6]) || 0;
+        r.oreOggi   += parseFloat(row[7]) || 0;
+      }
+    });
   }
-  const byDate = {};
-  [...dataProduzione].reverse().forEach(p => { const d=fmtDate(p.Data); if(!byDate[d]) byDate[d]=[]; byDate[d].push(p); });
-  document.getElementById('produzione-list').innerHTML = Object.entries(byDate)
-    .map(([d,items]) => `<div class="card"><div class="card-title">${d}</div>${items.map(prodCard).join('')}</div>`).join('');
+  return r;
 }
 
-async function submitOrdine() {
-  const cliente = document.getElementById('ord-cliente').value.trim();
-  const rif     = document.getElementById('ord-rif').value.trim();
-  const qty     = document.getElementById('ord-qty').value;
-  if (!cliente||!rif||!qty) { showAlert('alert-modal-ordine','⚠ Compila tutti i campi obbligatori','error'); return; }
-  try {
-    const res = await jsonp({ action:'addOrdine', cliente, rif, qty,
-      dataOrdine:document.getElementById('ord-data').value,
-      dataConsegna:document.getElementById('ord-consegna').value,
-      note:document.getElementById('ord-note').value });
-    if (res.success) {
-      closeModal('modal-ordine');
-      ['ord-cliente','ord-rif','ord-qty','ord-note'].forEach(id=>document.getElementById(id).value='');
-      await syncAll();
-      showAlert('alert-ordini','✓ Ordine salvato!','success');
-      goTo('ordini');
-    } else { showAlert('alert-modal-ordine','❌ '+(res.error||'Errore'),'error'); }
-  } catch(e) { showAlert('alert-modal-ordine','❌ '+e.message,'error'); }
+function addOrdine(p) {
+  const id   = 'ORD-' + Date.now();
+  const fasi = JSON.parse(p.fasi || '[]');
+
+  getSheet('Ordini').appendRow([
+    id, p.cliente||'', p.rif||'', p.dataOrdine||'', p.dataConsegna||'',
+    parseFloat(p.qtyTotale)||0, 'In corso', p.note||'', p.fasi||'[]'
+  ]);
+
+  const fasiSheet = getSheet('FasiOrdine');
+  fasi.forEach(f => {
+    fasiSheet.appendRow([id, f.nome, parseFloat(f.qty)||0, 0, 'In attesa']);
+  });
+
+  return { success: true, id };
 }
 
-async function submitProduzione() {
-  const operatore = document.getElementById('prod-operatore').value;
-  const macchina  = document.getElementById('prod-macchina').value;
-  const rif       = document.getElementById('prod-rif').value.trim();
-  const pezzi     = document.getElementById('prod-pezzi').value;
-  if (!operatore||!macchina||!rif||!pezzi) { showAlert('alert-modal-produzione','⚠ Compila tutti i campi obbligatori','error'); return; }
-  try {
-    const res = await jsonp({ action:'addProduzione', operatore, macchina, rif, pezzi,
-      data:document.getElementById('prod-data').value,
-      note:document.getElementById('prod-note').value });
-    if (res.success) {
-      closeModal('modal-produzione');
-      ['prod-operatore','prod-macchina','prod-rif','prod-pezzi','prod-note'].forEach(id=>document.getElementById(id).value='');
-      await syncAll();
-      showAlert('alert-produzione','✓ Produzione salvata!','success');
-      goTo('produzione');
-    } else { showAlert('alert-modal-produzione','❌ '+(res.error||'Errore'),'error'); }
-  } catch(e) { showAlert('alert-modal-produzione','❌ '+e.message,'error'); }
-}
+function addProduzione(p) {
+  const ordineId = p.ordineId;
+  const fase     = p.fase;
+  const pezzi    = parseFloat(p.pezzi) || 0;
+  const ore      = parseFloat(p.ore) || 0;
 
-document.getElementById('today-label').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-syncAll();
-setInterval(syncAll, 60000);
-</script>
-</body>
-</html>
+  // Controlla quantità fase
+  const fasiSheet = getSheet('FasiOrdine');
+  const fasiData  = fasiSheet.getDataRange().getValues();
+  let faseRow = -1;
+  for (let i = 1; i < fasiData.length; i++) {
+    if (fasiData[i][0] === ordineId && fasiData[i][1] === fase) {
+      faseRow = i; break;
+    }
+  }
+  if (faseRow === -1) return { success:false, error:'Fase non trovata nell\'ordine' };
+
+  const qtyRichiesta   = parseFloat(fasiData[faseRow][2]) || 0;
+  const qtyGiaFatta    = parseFloat(fasiData[faseRow][3]) || 0;
+  const qtyDisponibile = qtyRichiesta - qtyGiaFatta;
+
+  if (pezzi > qtyDisponibile) {
+    return {
+      success: false,
+      error: '⚠ Quantità superata! Puoi inserire max ' + qtyDisponibile + ' pezzi per questa fase.'
+    };
+  }
+
+  // Aggiorna fase
+  const nuovaQty = qtyGiaFatta + pezzi;
+  fasiSheet.getRange(faseRow+1, 4).setValue(nuovaQty);
+  fasiSheet.getRange(faseRow+1, 5).setValue(nuovaQty >= qtyRichiesta ? 'Completata' : 'In corso');
+
+  // Salva produzione
+  const id = 'PROD-' + Date.now();
+  getSheet('Produzione').appendRow([
+    id, p.data||'', p.operatore||'', ordineId, p.rif||'', fase, pezzi, ore, p.note||''
+  ]);
+
+  // Controlla se tutte le fasi completate → ordine completato
+  const fasiOrdine = fasiData.slice(1).filter(r => r[0] === ordineId);
+  const tutteComplete = fasiOrdine.every(r => {
+    if (r[1] === fase) return nuovaQty >= qtyRichiesta;
+    return r[4] === 'Completata';
+  });
+
+  if (tutteComplete) {
+    const ordSheet = getSheet('Ordini');
+    const ordData  = ordSheet.getDataRange().getValues();
+    for (let i = 1; i < ordData.length; i++) {
+      if (ordData[i][0] === ordineId) {
+        ordSheet.getRange(i+1, 7).setValue('Completato'); break;
+      }
+    }
+  }
+
+  return { success:true, id, qtyRimasta: qtyDisponibile - pezzi, tutteComplete };
+}
