@@ -310,10 +310,37 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 // ── API ──
 async function apiCall(params) {
   const url = API + '?' + new URLSearchParams(params).toString();
-  const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-  const res = await fetch(proxy);
-  const data = await res.json();
-  return JSON.parse(data.contents);
+  try {
+    // Prova corsproxy.io
+    const proxy = 'https://corsproxy.io/?' + encodeURIComponent(url);
+    const res = await fetch(proxy);
+    const text = await res.text();
+    return JSON.parse(text);
+  } catch(e) {
+    // Fallback: jsonp diretto
+    return await jsonpCall(url);
+  }
+}
+
+function jsonpCall(url) {
+  return new Promise((resolve, reject) => {
+    const cb = '_cb' + Date.now();
+    const timeout = setTimeout(() => {
+      delete window[cb];
+      reject(new Error('Timeout'));
+    }, 15000);
+    window[cb] = data => {
+      clearTimeout(timeout);
+      delete window[cb];
+      document.getElementById(cb)?.remove();
+      resolve(data);
+    };
+    const s = document.createElement('script');
+    s.id = cb;
+    s.src = url + '&callback=' + cb;
+    s.onerror = () => { clearTimeout(timeout); reject(new Error('Errore rete')); };
+    document.head.appendChild(s);
+  });
 }
 
 async function syncAll() {
